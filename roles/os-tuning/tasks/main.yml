@@ -1,0 +1,176 @@
+# Only available with ansible 2.2.0. See https://www.kariliq.nl/misc/debian-clock.html
+#- name: timezone_UTC
+#  timezone: name=UTC
+
+- name: Make sure pam_limits.so is enabled
+  lineinfile:
+    dest: /etc/pam.d/common-session
+    line: "session    required   pam_limits.so"
+    state: present
+    regexp: 'session\s*required\s*pam_limits.so'
+
+- name: Limits - set limits_nofile to hight value
+  pam_limits: domain=* limit_type=- limit_item=nofile value=1048576
+  become: yes
+
+- name: Limits - allow unlimited mlock limits_memlock
+  pam_limits: domain=* limit_type=- limit_item=memlock value=unlimited
+  become: yes
+
+- name: Limits - unlimited fsize
+  pam_limits: domain=* limit_type=- limit_item=fsize value=unlimited
+  become: yes
+
+- name: Limits - increase limits_nproc
+  pam_limits: domain=* limit_type=- limit_item=nproc value=999999
+  become: yes
+
+##Network tuning
+
+- name : Network - increase maximum ancillary buffer size allowed per socket
+  sysctl: name="net.core.optmem_max" value=40960 state=present reload=yes
+
+- name: Network - increase receive buffer min/init/max size - TCP Autotuning setting
+  #The first value tells the kernel the minimum receive buffer for each TCP connection, and this buffer is always allocated to a TCP socket, even under high pressure on the system.
+  #The second value specified tells the kernel the default receive buffer allocated for each TCP socket.
+  #This value overrides the /proc/sys/net/core/rmem_default value used by other protocols.
+  #The third and last value specified in this variable specifies the maximum receive buffer that can be allocated for a TCP socket
+  sysctl: name="net.ipv4.tcp_rmem" value="4096 87380 16777216" state=present reload=yes
+
+- name: Network - increase send buffer min/init/max size - TCP Autotuning setting
+  #This variable takes 3 different values which holds information on how much TCP sendbuffer memory space each TCP socket has to use.
+  #Every TCP socket has this much buffer space to use before the buffer is filled up. Each of the three values are used under different conditions.
+  #The first value in this variable tells the minimum TCP send buffer space available for a single TCP socket.
+  #The second value in the variable tells us the default buffer space allowed for a single TCP socket to use.
+  #The third value tells the kernel the maximum TCP send buffer space.
+  sysctl: name="net.ipv4.tcp_wmem" value="4096 87380 16777216" state=present reload=yes
+
+- name: Network - increase max OS receive buffer size for all types of connections.
+  sysctl: name="net.core.rmem_max" value=16777216 state=present reload=yes
+
+- name: Network - increase max OS send buffer size for all types of connections
+  sysctl: name="net.core.wmem_max" value=16777216 state=present reload=yes
+
+- name: Network - increase default OS receive buffer size for all types of connections.
+  sysctl: name="net.core.rmem_default" value=16777216 state=present reload=yes
+
+- name: Network - increase default OS send buffer size for all types of connections.
+  sysctl: name="net.core.wmem_default" value=16777216 state=present reload=yes
+
+
+
+- name: Network - increase maximum number of backlogged sockets
+  sysctl: name="net.core.somaxconn" value=1024 state=present reload=yes
+  when: os.advanced_tuning
+
+- name: Network - increase maximum number of backlogged sockets
+  sysctl: name="net.core.somaxconn" value=1024 state=present reload=yes
+  when: os.advanced_tuning
+
+- name: Network - increase max number of packet queued when the interface receives packets faster than the kernel can process them
+  sysctl: name="net.core.netdev_max_backlog" value=2500 state=present reload=yes
+  when: os.advanced_tuning
+
+- name: Network - enable tcp window scaling
+  sysctl: name="net.ipv4.tcp_window_scaling" value=1 state=present reload=yes
+  when: os.advanced_tuning
+
+- name: Network - disable explicit congestion notification
+  sysctl: name="net.ipv4.tcp_ecn" value=0 state=present reload=yes
+  when: os.advanced_tuning
+
+- name: Network - Increase socket port range
+  sysctl: name="net.ipv4.ip_local_port_range" value="10000 65535" state=present reload=yes
+  when: os.advanced_tuning
+
+- name : Network - enable fast time-wait recycle
+  sysctl: name="net.ipv4.tcp_tw_recycle" value=1 state=present reload=yes
+  when: os.advanced_tuning
+
+
+##MEMORY
+- name: Memory - disable zone_reclaim_mode
+  sysctl: name="vm.zone_reclaim_mode" value=0 state=present reload=yes
+
+- name: Memory - increase maximum number of memory map areas a process may have.
+  sysctl: name=vm.max_map_count value=1048575 state=present reload=yes
+
+- name: Memory - swapiness 1 (but swap should be disabled)
+  sysctl: name="vm.swappiness" value=1 state=present reload=yes
+
+- name: Memory - Turn off swap
+  lineinfile: dest=/etc/rc.local regexp='^.*swapoff.*$' line='swapoff --all'
+  notify: execute rc.local
+
+- name: Memory - set overcommit to 1=overcommit_nocheck
+  sysctl: name=vm.overcommit_memory value=1 state=present reload=yes
+  when: os.advanced_tuning
+
+- name: Memory - increase dirty memory amount threshold (kernel) (amount of system memory that can be filled with dirty pages before everything must get committed to disk)
+  sysctl: name=vm.dirty_background_bytes value=10485760 state=present reload=yes
+  when: os.advanced_tuning
+
+# default ratio to 10% should be enough
+#- name: Memory - increase dirty memory amount threshold (process) (amount of system memory that can be filled with dirty pages before everything must get committed to disk)
+#  sysctl: name=vm.dirty_bytes value=1073741824 state=present reload=yes
+#
+#- name: Memory - increase min number of VM free kilobytes
+#  sysctl: name=vm.min_free_kbytes value=1048576 state=present reload=yes
+
+- name: disable transparent hugepages
+  lineinfile: dest=/etc/rc.local regexp='^.*transparent_hugepage.*$' line='echo never > /sys/kernel/mm/transparent_hugepage/defrag'
+  notify: execute rc.local
+
+#Disk configuration:
+- name: SSD - autodetect the list of devices
+  shell: ls /sys/block/ | egrep '^(([shv]|xv])d[a-z]|nvme([0-9])).*?$'
+  register: ssd_blocks_auto
+  changed_when: no
+  when: os.ssd and os.autodetect_block
+
+#TODO: find a better way with these 2 fact
+- set_fact:
+    os_ssd_blocks: "{{ssd_blocks_auto.stdout_lines}}"
+  when: os.ssd and os.autodetect_block
+
+- set_fact:
+    os_ssd_blocks: "{{os.ssd_blocks}}"
+  when: not os.tune or not os.autodetect_block
+
+#- set_fact:
+#    os_ssd_blocks: ""
+#  when: not os.tune
+
+- name: SSD DISKS CHECK (Make sure it matches your configuration. If not disable set os.autodetect_block to false)
+  debug:
+    msg: "- SSD DISKS FOUND: {{ item }}"
+  with_items: "{{ os_ssd_blocks }}"
+  when: os.tune and os.ssd
+
+- name: disable transparent hugepages
+  lineinfile: dest=/etc/rc.local regexp='^.*/sys/block/{{item}}/queue/scheduler.*$' line='echo deadline > /sys/block/{{item}}/queue/scheduler'
+  notify: execute rc.local
+  with_items: "{{ os_ssd_blocks }}"
+  when: os.ssd
+
+- name: SSD - set rotational flag to false.
+  lineinfile: dest=/etc/rc.local regexp='^.*/sys/block/{{ item }}/queue/rotational.*$' line='echo 0 > /sys/block/{{ item }}/queue/rotational'
+  notify: execute rc.local
+  with_items: "{{ os_ssd_blocks }}"
+  when: os.ssd
+
+- name: SSD - set readahead to 8Kb
+  lineinfile: dest=/etc/rc.local regexp='^.*/sys/block/{{ item }}/queue/read_ahead_kb.*$' line='echo 8 > /sys/block/{{ item }}/queue/read_ahead_kb'
+  notify: execute rc.local
+  with_items: "{{ os_ssd_blocks }}"
+  when: os.ssd
+
+- name: HDD - set rotational flag to true.
+  lineinfile: dest=/etc/rc.local regexp='^.*/sys/block/{{ item }}/queue/rotational.*$' line='echo 1 > /sys/block/{{ item }}/queue/rotational'
+  notify: execute rc.local
+  with_items: "{{ os.hdd_blocks }}"
+
+- name: HDD - set readahead to 128Kb
+  lineinfile: dest=/etc/rc.local regexp='^.*/sys/block/{{ item }}/queue/read_ahead_kb.*$' line='echo 128 > /sys/block/{{ item }}/queue/read_ahead_kb'
+  notify: execute rc.local
+  with_items: "{{ os.hdd_blocks }}"

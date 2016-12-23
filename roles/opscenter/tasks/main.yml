@@ -1,0 +1,21 @@
+- name: adding repo
+  apt_repository: repo='deb http://debian.datastax.com/community stable main' state=present
+  register: datastaxApt
+
+- name: adding repo key
+  apt_key: url=https://debian.datastax.com/debian/repo_key state=present
+  when: datastaxApt.changed
+
+- name: installing opscenter
+  apt: pkg=opscenter state=installed allow_unauthenticated=yes
+
+- name: configuring opscenter
+  template: src=opscenterd.conf dest=/etc/opscenter/opscenterd.conf
+  register: opscenterConf
+
+- name: starting opscenter
+  service: name=opscenterd enabled=yes state=restarted
+  when: opscenterConf.changed
+
+- name: starting opscenter
+  service: name=opscenterd enabled=yes state=started

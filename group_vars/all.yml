@@ -1,0 +1,39 @@
+#Os settins. See system-conf.yml for detailed
+os:
+  tune: True
+  #Extra tuning conf. Should be carefully used.
+  advanced_tuning: True
+  #True if primary storage is SSD
+  ssd: True
+  #will execute a regexp to detect SSD blocks.
+  autodetect_block: True
+  #If autodetect_block = False, manually list SSD here.
+  ssd_blocks: [] #["sda", "sdb"]
+  #All auto discovered blocks are assumed to be SDD. If HDD, add list here.
+  hdd_blocks: [] #["sda", "sdb"]
+  disk_scheduler: 'deadline'
+
+dse_username: 'quentin.ambard@datastax.com'
+dse_password: 'dse_password'
+#Cassandra global configuration
+cassandra:
+  cluster_name: 'PREPROD-cluster'
+  #listen_address:
+  #listen_interface ignored if listen_address is set
+  listen_interface: 'eth0' #lan interface
+  #rpc_address:
+  #rpc_interface ignored if listen_address is set
+  rpc_interface: 'eth0' #lan interface
+  data_file_directories: /opt/cassandra/data/data
+  hints_directory: /opt/cassandra/data/hints
+  saved_caches_directory: /opt/cassandra/data/saved_caches
+  commitlog_directory: /opt/cassandra/commitlog
+
+  #Cassandra jvm. See jvm.options to tune other settings.
+  java_xmx: '6G'
+  java_xms: '6G'
+
+opscenter:
+  interface: '10.240.0.22'
+
+datadog_api_key: "XXX"

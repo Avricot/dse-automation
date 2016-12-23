@@ -1,0 +1,14 @@
+opscenter ansible_ssh_user=root ansible_ssh_host=146.148.118.87
+
+#[preprod]
+test ansible_ssh_user=root ansible_ssh_host=146.148.118.87
+#test1 ansible_ssh_user=root ansible_ssh_host=104.155.120.207
+#test2 ansible_ssh_user=root ansible_ssh_host=104.199.15.246
+#test3 ansible_ssh_user=root ansible_ssh_host=146.148.122.189
+
+
+
+#[dc1]
+#test1
+#test2
+#test3

@@ -1,0 +1,7 @@
+#Cassandra DCX  configuration
+cassandra:
+  seeds: '10.240.0.24,10.240.0.23,10.240.0.25'
+  dc: 'DC1'
+#Spark configuration
+spark:
+  enabled: False

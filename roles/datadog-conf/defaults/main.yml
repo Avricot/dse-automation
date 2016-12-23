@@ -1,0 +1,4 @@
+datadog:
+  cassandra: False
+  #Spark not yet configured for datadog.
+  spark: False

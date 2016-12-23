@@ -1,0 +1,21 @@
+- hosts: preprod
+  user: root
+  become: yes
+  become_method: sudo
+
+  roles:
+  - role: resmo.ntp
+  - role: os-tuning
+  - role: common
+  - role: dse
+
+
+- hosts: opscenter
+  user: root
+  become: yes
+  become_method: sudo
+
+  roles:
+  - role: resmo.ntp
+  - role: common
+  - role: opscenter

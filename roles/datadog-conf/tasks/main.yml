@@ -1,0 +1,6 @@
+- name: Add cassandra datadog file
+  template:
+    src: cassandra.yaml
+    dest: /etc/dd-agent/conf.d/cassandra.yaml
+  when: datadog.cassandra
+  notify: restart_datadog

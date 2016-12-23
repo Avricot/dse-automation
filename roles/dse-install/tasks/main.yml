@@ -1,0 +1,7 @@
+- include: dependencies.yml
+- include: dse-install.yml
+- include: dse-spark-install.yml
+  when: spark.enabled
+- include: datastax-agent-install.yml
+  when: install_agent
+- include: start-dse.yml
