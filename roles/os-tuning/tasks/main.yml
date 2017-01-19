@@ -1,6 +1,22 @@
+- name: tune cassandra-tuning settings
+  blockinfile:
+    dest: /etc/systemd/system/cassandra-tuning.service
+    create: yes
+    group: root
+    owner: root
+    mode: 0664
+    marker: "#{mark} ANSIBLE HEADER"
+    block: |
+      [Install]
+      WantedBy=default.target
+      [Unit]
+      After=default.target
+      [Service]
+      Type=oneshot
+
 # Only available with ansible 2.2.0. See https://www.kariliq.nl/misc/debian-clock.html
-#- name: timezone_UTC
-#  timezone: name=UTC
+- name: timezone_UTC
+  timezone: name=UTC
 
 - name: Make sure pam_limits.so is enabled
   lineinfile:
@@ -8,6 +24,7 @@
     line: "session    required   pam_limits.so"
     state: present
     regexp: 'session\s*required\s*pam_limits.so'
+  when: ansible_os_family == 'Debian'
 
 - name: Limits - set limits_nofile to hight value
   pam_limits: domain=* limit_type=- limit_item=nofile value=1048576
@@ -99,8 +116,17 @@
   sysctl: name="vm.swappiness" value=1 state=present reload=yes
 
 - name: Memory - Turn off swap
-  lineinfile: dest=/etc/rc.local regexp='^.*swapoff.*$' line='swapoff --all'
-  notify: execute rc.local
+  lineinfile:
+    dest: /etc/systemd/system/cassandra-tuning.service
+    regexp: '^.*swapoff.*$'
+    line: "ExecStart=/usr/bin/bash -c 'swapoff --all'"
+    state: present
+  notify: reload cassandra-tuning
+
+
+#- name: Memory - Turn off swap
+#  lineinfile: dest=/etc/rc.local regexp='^.*swapoff.*$' line='swapoff --all'
+#  notify: reload cassandra-tuning
 
 - name: Memory - set overcommit to 1=overcommit_nocheck
   sysctl: name=vm.overcommit_memory value=1 state=present reload=yes
@@ -125,20 +151,24 @@
 #  sysctl: name=vm.min_free_kbytes value=1048576 state=present reload=yes
 
 - name: disable transparent hugepages
-  lineinfile: dest=/etc/rc.local regexp='^.*transparent_hugepage.*$' line='echo never > /sys/kernel/mm/transparent_hugepage/defrag'
-  notify: execute rc.local
+  lineinfile:
+    dest: /etc/systemd/system/cassandra-tuning.service
+    regexp: '^.*transparent_hugepage.*$'
+    line: "ExecStart=/usr/bin/bash -c 'echo never > /sys/kernel/mm/transparent_hugepage/defrag'"
+    state: present
+  notify: reload cassandra-tuning
 
 #Disk configuration:
 - name: SSD - autodetect the list of devices
   shell: ls /sys/block/ | egrep '^(([shv]|xv])d[a-z]|nvme([0-9])).*?$'
   register: ssd_blocks_auto
   changed_when: no
-  when: os.ssd and os.autodetect_block
+  when: os.autodetect_block
 
 #TODO: find a better way with these 2 fact
 - set_fact:
     os_ssd_blocks: "{{ssd_blocks_auto.stdout_lines}}"
-  when: os.ssd and os.autodetect_block
+  when: os.autodetect_block
 
 - set_fact:
     os_ssd_blocks: "{{os.ssd_blocks}}"
@@ -152,32 +182,58 @@
   debug:
     msg: "- SSD DISKS FOUND: {{ item }}"
   with_items: "{{ os_ssd_blocks }}"
-  when: os.tune and os.ssd
+  when: os.tune
 
-- name: disable transparent hugepages
-  lineinfile: dest=/etc/rc.local regexp='^.*/sys/block/{{item}}/queue/scheduler.*$' line='echo deadline > /sys/block/{{item}}/queue/scheduler'
-  notify: execute rc.local
+- name: set ssd scheduler to {{os.ssd_scheduler}}
+  lineinfile:
+    dest: /etc/systemd/system/cassandra-tuning.service
+    regexp: '^.*/sys/block/{{item}}/queue/scheduler.*$'
+    line: "ExecStart=/usr/bin/bash -c 'echo {{os.ssd_scheduler}} > /sys/block/{{item}}/queue/scheduler'"
+    state: present
   with_items: "{{ os_ssd_blocks }}"
-  when: os.ssd
+  notify: reload cassandra-tuning
 
 - name: SSD - set rotational flag to false.
-  lineinfile: dest=/etc/rc.local regexp='^.*/sys/block/{{ item }}/queue/rotational.*$' line='echo 0 > /sys/block/{{ item }}/queue/rotational'
-  notify: execute rc.local
+  lineinfile:
+    dest: /etc/systemd/system/cassandra-tuning.service
+    regexp: '^.*/sys/block/{{ item }}/queue/rotational.*$'
+    line: "ExecStart=/usr/bin/bash -c 'echo 0 > /sys/block/{{ item }}/queue/rotational'"
+    state: present
   with_items: "{{ os_ssd_blocks }}"
-  when: os.ssd
+  notify: reload cassandra-tuning
 
 - name: SSD - set readahead to 8Kb
-  lineinfile: dest=/etc/rc.local regexp='^.*/sys/block/{{ item }}/queue/read_ahead_kb.*$' line='echo 8 > /sys/block/{{ item }}/queue/read_ahead_kb'
-  notify: execute rc.local
+  lineinfile:
+    dest: /etc/systemd/system/cassandra-tuning.service
+    regexp: '^.*/sys/block/{{ item }}/queue/read_ahead_kb.*$'
+    line: "ExecStart=/usr/bin/bash -c 'echo 8 > /sys/block/{{ item }}/queue/read_ahead_kb'"
+    state: present
+  notify: reload cassandra-tuning
   with_items: "{{ os_ssd_blocks }}"
-  when: os.ssd
+
+- name: set hdd scheduler to {{os.hdd_scheduler}}
+  lineinfile:
+    dest: /etc/systemd/system/cassandra-tuning.service
+    regexp: '^.*/sys/block/{{item}}/queue/scheduler.*$'
+    line: "ExecStart=/usr/bin/bash -c 'echo {{os.hdd_scheduler}} > /sys/block/{{item}}/queue/scheduler'"
+    state: present
+  notify: reload cassandra-tuning
+  with_items: "{{ os.hdd_blocks }}"
 
 - name: HDD - set rotational flag to true.
-  lineinfile: dest=/etc/rc.local regexp='^.*/sys/block/{{ item }}/queue/rotational.*$' line='echo 1 > /sys/block/{{ item }}/queue/rotational'
-  notify: execute rc.local
+  lineinfile:
+    dest: /etc/systemd/system/cassandra-tuning.service
+    regexp: '^.*/sys/block/{{ item }}/queue/rotational.*$'
+    line: "ExecStart=/usr/bin/bash -c 'echo 1 > /sys/block/{{ item }}/queue/rotational'"
+    state: present
+  notify: reload cassandra-tuning
   with_items: "{{ os.hdd_blocks }}"
 
 - name: HDD - set readahead to 128Kb
-  lineinfile: dest=/etc/rc.local regexp='^.*/sys/block/{{ item }}/queue/read_ahead_kb.*$' line='echo 128 > /sys/block/{{ item }}/queue/read_ahead_kb'
-  notify: execute rc.local
+  lineinfile:
+    dest: /etc/systemd/system/cassandra-tuning.service
+    regexp: '^.*/sys/block/{{ item }}/queue/read_ahead_kb.*$'
+    line: "ExecStart=/usr/bin/bash -c 'echo 128 > /sys/block/{{ item }}/queue/read_ahead_kb'"
+    state: present
+  notify: reload cassandra-tuning
   with_items: "{{ os.hdd_blocks }}"

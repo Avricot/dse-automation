@@ -1,0 +1,32 @@
+- name: Add datastax repository
+  yum_repository:
+    name: DataStax Repo for DataStax Enterprise
+    description: DataStax Repo for DataStax Enterprise
+    baseurl: https://{{dse_username}}:{{dse_password}}@rpm.datastax.com/enterprise
+
+- name: Add community repository
+  yum_repository:
+    name: DataStax community Repo for DataStax Enterprise
+    description: DataStax community Repo for DataStax Enterprise
+    baseurl: http://rpm.datastax.com/community
+
+#- name: copy dse rpm
+#  copy:
+#    src: /home/quentin/Downloads/dse-full-5.0.5-1.noarch.rpm
+#    dest: /tmp/dse-full.noarch.rpm
+#
+#- name: Install dse full rpm
+#  yum:
+#    name: /tmp/dse-full.noarch.rpm
+#    state: present
+#
+#- name: copy dse rpm
+#  copy:
+#    src: /home/quentin/Downloads/datastax-agent-6.0.7-1.noarch.rpm
+#    dest: /tmp/datastax-agent.noarch.rpm
+#
+#
+#- name: Install datastax agent rpm
+#  yum:
+#    name: /tmp/datastax-agent.noarch.rpm
+#    state: present

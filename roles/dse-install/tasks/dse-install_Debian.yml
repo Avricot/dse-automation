@@ -1,0 +1,2 @@
+- name: installing datastax enterprise
+  apt: pkg=dse-full state=installed allow_unauthenticated=yes

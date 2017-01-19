@@ -1,0 +1,4 @@
+- name: installing datastax enterprise
+  yum:
+    name: dse-full
+    state: present

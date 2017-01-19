@@ -1,0 +1,43 @@
+cassandra:
+  #Add any values you need here. They will be added to the cassandra-rackdc.properties file.
+  rackdc_file:
+    dc: "DC1"
+    rack: "RACK1"
+    prefer_local: true
+
+  #Add any values you need here. They will be added to the cassandra.yaml file.
+  #Set the value to None to comment the line with the given key.
+  yaml_file:
+    cluster_name: 'cluster'
+    listen_address: None
+    listen_interface: 'eth0'
+    rpc_address: None
+    rpc_interface: 'eth0'
+    data_file_directories: /opt/cassandra/data/data
+    hints_directory: /opt/cassandra/data/hints
+    saved_caches_directory: /opt/cassandra/data/saved_caches
+    commitlog_directory: /opt/cassandra/commitlog
+
+  jvm_file:
+    #Cassandra jvm. See jvm.options to tune other settings.
+    java_xmx: '31G'
+    java_xms: '31G'
+
+spark:
+  enabled: False
+  master_port: 7077
+  master_webui_port: 7080
+  worker_webui_port: 7081
+  worker_memory: 8g
+  driver_memory: 1g
+  worker_cores: 5
+  worker_dir: '/opt/spark/data/worker'
+  local_dir: '/opt/spark/data/rdd'
+  worker_log_dir: '/var/log/spark/worker'
+  master_log_dir: '/var/log/spark/master'
+  #Spark event log
+  eventLog_enabled: 'true'
+  eventLog_dir: 'file:/opt/spark/data/spark-events'
+
+prefer_local: True
+advancedOSTuning: False

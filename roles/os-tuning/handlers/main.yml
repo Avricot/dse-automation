@@ -1,6 +1,5 @@
-# handlers file for rc-local
----
-- name: execute rc.local
+- name: reload cassandra-tuning
   service:
-    name: rc.local
-    state: started
+    name: cassandra-tuning
+    state: restarted
+    enabled: yes

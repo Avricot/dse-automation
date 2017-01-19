@@ -1,7 +1,69 @@
-- include: dependencies.yml
-- include: dse-install.yml
-- include: dse-spark-install.yml
-  when: spark.enabled
-- include: datastax-agent-install.yml
-  when: install_agent
-- include: start-dse.yml
+#- name: configuring datastax agent
+#  template:
+#    src: 'agent/address.yaml'
+#    dest: '/var/lib/datastax-agent/conf/address.yaml'
+#
+#- name: starting datastax agent
+#  service: name=datastax-agent enabled=yes state=started
+
+
+- name: set cassandra root data folder permission
+  file: path={{item}} owner={{cassandra.user}} group={{cassandra.group}} mode=760 state=directory
+  with_items:
+    - cassandra.cassandra_yaml.conf.data_file_directories
+    - cassandra.cassandra_yaml.conf.hints_directory
+    - cassandra.cassandra_yaml.conf.saved_caches_directory
+    - cassandra.cassandra_yaml.conf.commitlog_directory
+
+#Cassandra.yaml
+- name: Cassandra chek all the keys exist in {{cassandra.cassandra_yaml.path}}
+  lineinfile:
+    dest: '{{cassandra.cassandra_yaml.path}}'
+    regexp: '^\s*#?\s*{{item.key}}:(.*)$'
+    line: '{{item.key}}:\1'
+    backrefs: yes
+    state: present
+  with_dict: '{{cassandra.cassandra_yaml.conf}}'
+
+- name: Update cassandra list settings in {{cassandra.cassandra_yaml.path}}
+  replace:
+    dest: '{{cassandra.cassandra_yaml.path}}'
+    regexp: '^\s*#?\s*{{item.key}}:.*\n(.*\n)*?\n#'
+    replace: "{{item.key}}: {{item.value}}\n\n#"
+  with_dict: '{{cassandra.cassandra_yaml.conf}}'
+  when: item.value is not none
+
+- name: Comment lines set to None in {{cassandra.cassandra_yaml.path}}
+  replace:
+    dest: '{{cassandra.cassandra_yaml.path}}'
+    regexp: '^\s*#?\s*{{item.key}}:.*\n(.*\n)*?\n#'
+    replace: "#{{item.key}}: \n\n#"
+  with_dict: '{{cassandra.cassandra_yaml.conf}}'
+  when: item.value is none
+
+
+
+#options.jvm
+- name: set options.jvm conf {{cassandra.jvm_options.path}}
+  lineinfile:
+    dest: '{{cassandra.jvm_options.path}}'
+    regexp: '^\s*#?\s*{{item.key}}\s*$'
+    line: '{{item.key}}'
+    state: present
+  with_dict: '{{cassandra.jvm_options.conf}}'
+  when: item.value is not none
+
+- name: set options.jvm conf {{cassandra.jvm_options.path}}
+  lineinfile:
+    dest: '{{cassandra.jvm_options.path}}'
+    regexp: '^\s*#?\s*{{item.key}}\s*$'
+    line: '#{{item.key}}'
+    state: present
+  with_dict: '{{cassandra.jvm_options.conf}}'
+  when: item.value is none
+
+#rack properties
+- name: configuring gossiping snitch {{cassandra.cassandra_rackdc_properties.path}}
+  template:
+    src: 'cassandra/cassandra-rackdc.properties'
+    dest: "{{cassandra.cassandra_rackdc_properties.path}}"

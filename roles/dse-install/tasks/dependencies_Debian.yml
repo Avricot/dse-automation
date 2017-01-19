@@ -4,7 +4,6 @@
 
 - name: adding dse repo key
   apt_key: url=https://debian.datastax.com/debian/repo_key state=present
-  when: dseAptkey.changed
 
 - name: adding datastax community repo
   apt_repository: repo='deb http://debian.datastax.com/community stable main' state=present update_cache=yes
@@ -12,7 +11,6 @@
 
 - name: adding datastax community repo key
   apt_key: url=https://debian.datastax.com/debian/repo_key state=present
-  when: datastaxAptkey.changed
 
 - name: updating machine
   apt: update_cache=yes

@@ -1,11 +1,11 @@
 os:
   tune: True
   advanced_tuning: False
-  ssd: True
   #will execute a regexp to detect SSD blocks. Disable if you have a mix of SSD/HDD or unusal block name
   autodetect_block: True
   #If autodetect_block = False, manually list SSD here.
   ssd_blocks: [] #["sda", "sdb"]
+  ssd_scheduler: 'deadline'
   #All auto discovered blocks are assumed to be SDD. If HDD, add list here.
   hdd_blocks: [] #["sda", "sdb"]
-  disk_scheduler: 'deadline'
+  hdd_scheduler: 'cfq'

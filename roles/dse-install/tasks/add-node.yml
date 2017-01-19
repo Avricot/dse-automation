@@ -1,0 +1,14 @@
+- name: check if instance {{instance_id}} already exists
+  shell: dse list-nodes | grep dse-{{instance_id}}
+  register: dseexists
+  ignore_errors: true
+
+- name: Add dse node {{instance_id}}
+  command: dse add-node --node-id {{instance_id}} --cluster TORE_POC --listen-address {{ip}} --rpc-address {{ip}}  --jmxport 7{{instance_id}}99 --seeds {{cassandra.seeds}} --max-heap-size=10G --cpus 4 --data-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/data" --hints-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/hints" --commit-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/commitlog" --saved-caches-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/savedcache" --logs-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/logs"
+  when: dseexists|failed
+
+- name: Start dse node {{instance_id}}
+  service:
+    name: dse-{{instance_id}}
+    state: started
+  when: start-dse

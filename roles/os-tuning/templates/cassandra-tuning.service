@@ -1,0 +1,14 @@
+[Unit]
+After=default.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash -c '/sbin/swapoff --all'
+ExecStart=/usr/bin/bash -c '/bin/echo never > /sys/kernel/mm/transparent_hugepage/defrag'
+ExecStart=/usr/bin/bash -c '/bin/echo deadline > /sys/block/sda/queue/scheduler'
+ExecStart=/usr/bin/bash -c '/bin/echo 0 > /sys/block/sda/queue/rotational'
+ExecStart=/usr/bin/bash -c '/bin/echo 8 > /sys/block/sda/queue/read_ahead_kb'
+
+
+[Install]
+WantedBy=default.target

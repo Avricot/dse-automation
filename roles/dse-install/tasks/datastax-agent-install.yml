@@ -2,7 +2,7 @@
   apt: pkg=datastax-agent state=installed
 
 - name: configuring datastax agent
-  template: src={{ role_path }}/templates/agent/address.yaml dest=/var/lib/datastax-agent/conf/address.yaml
+  template: src=agent/address.yaml dest=/var/lib/datastax-agent/conf/address.yaml
 
 - name: starting datastax agent
   service: name=datastax-agent enabled=yes state=started

@@ -1,0 +1,23 @@
+- name: create instance files
+  file: path={{item}} owner={{cassandra.user}} group={{cassandra.group}} mode=760 state=directory
+  with_items:
+    - "/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/commitlog"
+    - "/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/data"
+    - "/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/savedcache"
+    - "/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/logs"
+    - "/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/hints"
+
+- name: check if instance {{instance_id}} already exists
+  shell: dse list-nodes | grep dse-{{instance_id}}
+  register: dseexists
+  ignore_errors: true
+
+- name: Add dse node {{instance_id}}
+  command: dse add-node --node-id {{instance_id}} --listen-address {{ip}} --rpc-address {{ip}}  --jmxport 7{{instance_id}}99 --seeds {{cassandra_seeds}} --max-heap-size={{cassandra_max_heap_size}} --cpus {{cassandra_cpu}} --data-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/data" --hints-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/hints" --commit-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/commitlog" --saved-caches-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/savedcache" --logs-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/logs"
+  when: dseexists|failed
+
+- name: Start dse node {{instance_id}}
+  service:
+    name: dse-{{instance_id}}
+    state: started
+  when: start-dse

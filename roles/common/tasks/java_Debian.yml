@@ -15,7 +15,6 @@
   apt: update_cache=yes
   when: javaAdded.changed
 
-
 - name: Debian - Accept Java 8 License
   debconf: name='oracle-java8-installer' question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
   when: javaAdded.changed
@@ -30,9 +29,7 @@
 - name: installing some extra dependencies
   apt: pkg={{ item }} state=installed
   with_items:
-  - git
   - curl
   - htop
   - vim
   - sysstat
-  #- software-properties-common
