@@ -15,7 +15,7 @@ Set your hosts ips in the `hosts` file, example:
 
 Some vars must be set for dse install and opscenter:
 
-```
+```yaml
   vars:
     dse_username: 'xxxxxx@mail.com'
     dse_password: 'xxxxxx'
@@ -37,7 +37,7 @@ Install common libs and java on the node (curl,vim,sysstat etc.)
 
 Syntaxe:
 
-```$xslt
+```yaml
   - role: common
     #must the the exact name of the extracted archived downloaded with java_download_url
     java_version: jdk1.8.0_111
@@ -51,7 +51,7 @@ Tune os with recommanded settings (see https://docs.datastax.com/en/landing_page
 
 Syntax:
 
-```$xslt
+```yaml
   - role: os-tuning
     os:
       #Enable extra tuning conf. Should be used carefully.
@@ -71,7 +71,7 @@ Add repositories and install dse-full
 
 Syntax:
 
-```$xslt
+```yaml
   - role: dse-install
     spark:
       enabled: False
@@ -85,7 +85,7 @@ Configure cassandra yam file
 Note: using cassandra.yaml with ninja template might be easier in most case.
 
 
-```$xslt
+```yaml
   #############################
   # change main cassandra.yaml file:
   - role: dse-conf
