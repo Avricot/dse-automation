@@ -1,7 +1,0 @@
-- hosts: test
-  user: root
-  become: yes
-  become_method: sudo
-
-  roles:
-  - role: check-configuration

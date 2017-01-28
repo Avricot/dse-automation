@@ -8,7 +8,8 @@
   yum_repository:
     name: DataStax community Repo for DataStax Enterprise
     description: DataStax community Repo for DataStax Enterprise
-    baseurl: http://rpm.datastax.com/community
+    baseurl: 'http://rpm.datastax.com/community'
+
 
 #- name: copy dse rpm
 #  copy:

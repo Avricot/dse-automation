@@ -4,14 +4,14 @@
   become: yes
   become_method: sudo
   vars:
-    dse_username: 'quentin.ambard@datastax.com'
-    dse_password: 'QuentinAcademy1'
+    dse_username: 'xxxx@datastax.com'
+    dse_password: 'xxxx'
     opscenter:
       interface: 'localhost'
   roles:
   #############################
   #Install ntp with default server
-  #- role: resmo.ntp
+  - role: resmo.ntp
 
   #############################
   #Install java and common packaged (wget, htop, vim, sysstat)
@@ -35,6 +35,9 @@
       hdd_blocks: [] #["sda", "sdb"]
 
   - role: dse-install
+    spark:
+      enabled: False
+    install_agent: True
 
   #############################
   # change main cassandra.yaml file:

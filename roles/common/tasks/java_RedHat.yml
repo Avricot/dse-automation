@@ -5,7 +5,7 @@
   with_items:
     - wget
     - curl
-    - htop
+    #- htop #htop not present by default.
     - vim
     - sysstat
 
@@ -35,6 +35,10 @@
     remote_src: yes
     src: /tmp/java8/java-8-oracle.tar.gz
     dest: /tmp/java8/extract
+  when: installed_java_version|failed or installed_java_version.stdout == '' or installed_java_version.stdout | version_compare('1.8', '<')
+
+- name: copy /tmp/java8/extract/{{java_version}}/* to /usr/lib/jvm/{{java_version}}/
+  command: mv /tmp/java8/extract/{{java_version}} /usr/lib/jvm/
   when: installed_java_version|failed or installed_java_version.stdout == '' or installed_java_version.stdout | version_compare('1.8', '<')
 
 - name: Fix ownership

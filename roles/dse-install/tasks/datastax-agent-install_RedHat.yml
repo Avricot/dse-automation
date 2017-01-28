@@ -1,0 +1,10 @@
+- name: installing datastax enterprise
+  yum:
+    name: datastax-agent
+    state: present
+
+- name: configuring datastax agent
+  template: src=agent/address.yaml dest=/var/lib/datastax-agent/conf/address.yaml
+
+- name: starting datastax agent
+  service: name=datastax-agent enabled=yes state=started

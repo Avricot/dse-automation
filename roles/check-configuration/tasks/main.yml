@@ -1,9 +1,0 @@
-- name: check os properties
-  timetest:
-    commands:
-      - command: ulimit *n
-        equals: 31
-
-  register: result
-
-- debug: var=result
