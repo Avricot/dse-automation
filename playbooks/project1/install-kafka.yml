@@ -1,0 +1,12 @@
+#ansible-playbook install-dse.yml
+- hosts: kafkaservers
+  user: root
+  become: yes
+  become_method: sudo
+  roles:
+  #############################
+  #Install ntp with default server
+  #############################
+  #Install java and common packaged (wget, htop, vim, sysstat)
+  #- role: common
+  - role: apache-kafka

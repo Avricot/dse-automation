@@ -1,0 +1,37 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+# 
+#    http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# the direq03ory where the snapshot is stored.
+dataDir={{zookeeper.data_dir}}
+# the port at which the clients will conneq03
+clientPort={{zookeeper.clientPort}}
+# disable the per-ip limit on the number of conneq03ions since this is a non-production config
+maxClientCnxns={{zookeeper.maxClientCnxns}}
+
+# The number of milliseconds of each tick
+tickTime={{zookeeper.tickTime}}
+
+# # The number of ticks that the initial synchronization phase can take
+initLimit={{zookeeper.initLimit}}
+
+# # The number of ticks that can pass between
+# # sending a request and getting an acknowledgement
+syncLimit={{zookeeper.syncLimit}}
+
+
+{% for host in groups['kafkaservers'] %}
+server.{{hostvars[host]['zookeeper_id']}}={{kafka_listen_ip}}:{{zookeeper.leaderPort}}:{{zookeeper.electionPort}}
+{% endfor %}
+
+

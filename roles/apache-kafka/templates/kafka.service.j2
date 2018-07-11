@@ -1,0 +1,19 @@
+[Unit]
+Description= Apache kafka broker 
+After=network.target remote-fs.target nss-lookup.target kafka-zookeeper.service
+Documentation=http://kafka.apache.org/documentation.html
+
+
+[Service]
+Type=simple
+User={{kafka.user.username}}
+Group={{kafka.user.groupname}}
+EnvironmentFile={{kafka_bin_dir}}/kafka.env
+ExecStart={{kafka_bin_dir}}/bin/kafka-server-start.sh {{kafka_bin_dir}}/config/server.properties
+RestartSec=30
+TimeoutSec=300
+ExecStop={{kafka_bin_dir}}/bin/kafka-server-stop.sh
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

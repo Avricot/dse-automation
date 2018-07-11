@@ -1,0 +1,78 @@
+  - name: create kafka group
+    group:
+        name: "{{ kafka.user.groupname }}"
+        state: present
+
+  - name: Create kafka user
+    user:
+        name: "{{ kafka.user.username }}"
+        shell: "{{ kafka.user.shell }}"
+        group: "{{ kafka.user.groupname }}"
+        state: present
+
+  - name: create directory "{{zookeeper.data_dir}}" and "{{kafka.log_dirs}}"
+    file:
+         path: "{{item}}"
+         owner: "{{ kafka.user.username }}"
+         group: "{{ kafka.user.groupname }}"
+         mode: 0755
+         state: directory
+    with_items:
+         - "{{zookeeper.data_dir}}"
+         - "{{kafka_bin_dir}}"
+         - "{{kafka.log_dirs}}"
+         - "{{kafka.log_dir}}"
+
+  - name: Untar kafka
+    unarchive:
+      src: "kafka_{{kafka.apacheversion}}.tar.gz"
+      dest: "{{kafka_bin_dir}}"
+      creates: "{{kafka_bin_dir}}/LICENSE"
+      owner: "{{kafka.user.username}}"
+      group: "{{kafka.user.groupname}}"
+      mode: 0755
+
+
+  - name:  template properties
+    template:
+      src: "{{item.src}}"
+      dest: "{{item.dest}}"
+      owner: "{{kafka.user.username}}"
+      group: "{{kafka.user.groupname}}"
+      mode: 0744
+      backup: yes
+    with_items:
+      - { src: 'server.properties.j2', dest: '{{kafka_bin_dir}}/config/server.properties' }
+      - { src: 'zookeeper.properties.j2', dest: '{{kafka_bin_dir}}/config/zookeeper.properties' }
+      - { src: 'kafka.env.j2', dest: '{{kafka_bin_dir}}/kafka.env' }
+      - { src: 'zookeeper.env.j2', dest: '{{kafka_bin_dir}}/zookeeper.env' }
+      - { src: 'kafka-run-class.sh.j2', dest: '{{kafka_bin_dir}}/bin/kafka-run-class.sh' }
+      - { src: 'kafka-server-start.sh.j2', dest: '{{kafka_bin_dir}}/bin/kafka-server-start.sh' }
+      - { src: 'log4j.properties.j2', dest: '{{kafka_bin_dir}}/config/log4j.properties' }
+
+  - name: creating zookeeper id "{{zookeeper_id}}"
+    copy:
+      content: "{{zookeeper_id}}"
+      dest: "{{zookeeper.data_dir}}/myid"
+      owner: "{{kafka.user.username}}"
+      group: "{{kafka.user.groupname}}"
+      
+
+  - name: Creates service for kafka and zookeeper
+    template:
+       src: "{{item.src}}"
+       dest: "{{item.dest}}"
+       owner: "{{kafka.user.username}}"
+       group: "{{kafka.user.groupname}}"
+    with_items:
+       - { src: 'kafka.service.j2', dest: '/etc/systemd/system/kafka.service' }
+       - { src: 'kafka.service.j2', dest: '/etc/systemd/system/zookeeper.service' }
+    notify: "reload systemctl"
+
+  - name: Enable service kafka.service zookeeper.service
+    service:
+      name: "{{item}}"
+      enabled: yes
+    with_items:
+      - kafka.service
+      - zookeeper.service

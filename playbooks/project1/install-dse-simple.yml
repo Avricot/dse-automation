@@ -1,0 +1,44 @@
+#ansible-playbook install-dse.yml
+- hosts: dse
+  user: root
+  become: yes
+  become_method: sudo
+  vars:
+    dse:
+      version: 5.1.10
+      repo_username: 'quentin.ambard%40datastax.com'
+      repo_password: 'QuentinAcademy1'
+      opscenter:
+        interface: 'localhost'
+  roles:
+  #############################
+  #Install ntp with default server
+  #- role: resmo.ntp
+  #############################
+  #Install java and common packaged (wget, htop, vim, sysstat)
+  #- role: common
+
+  #############################
+  #Tune os settings. Apply datastax recommended settings.
+#  - role: os-tuning
+#    os:
+#      #Enable extra tuning conf. Should be carefully used.
+#      advanced_tuning: True
+#      #will execute a regexp to detect blocks (all blocks will be tuned as SSD !).
+#      autodetect_block: True
+#      #If autodetect_block = False, manually list SSD here.
+#      ssd_blocks: [] #["sda", "sdb"]
+#      #If you have any HDD disks, set autodetect_block to False and list HDD drive here.
+#      hdd_blocks: [] #["sda", "sdb"]
+
+  - role: dse-install
+    dse:
+      cassandra:
+        cassandra_yaml:
+          listen_interface: enp0s3
+          rpc_interface: enp0s3
+        jvm_options:
+          heap: 1G
+      spark:
+        enabled: False
+      install_agent: True

@@ -1,2 +1,6 @@
-- name: configuring solr
-  shell: sed -i 's/SOLR_ENABLED=0/SOLR_ENABLED=1/g' /etc/default/dse
+- name: solr activation in /etc/default/dse
+  lineinfile:
+    dest: /etc/default/dse
+    line: SOLR_ENABLED=1
+    state: present
+    regexp: SOLR_ENABLED=.

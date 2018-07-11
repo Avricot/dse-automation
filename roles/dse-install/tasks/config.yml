@@ -1,0 +1,32 @@
+  - name: create cassandra directories
+    file:
+         path: "{{item}}"
+         owner: "{{ dse.cassandra.user }}"
+         group: "{{ dse.cassandra.group }}"
+         mode: 0755
+         state: directory
+    with_items:
+         - "{{dse.cassandra.cassandra_yaml.data_file_directories}}"
+         - "{{dse.cassandra.cassandra_yaml.hints_directory}}"
+         - "{{dse.cassandra.cassandra_yaml.saved_caches_directory}}"
+         - "{{dse.cassandra.cassandra_yaml.commitlog_directory}}"
+         - "{{dse.cassandra.cassandra_yaml.cdc_raw_directory}}"
+
+
+  - name: configuring dse.yaml
+    template: src=dse/dse-{{dse.version}}.yaml dest=/etc/dse/dse.yaml
+
+  - name: configuring dse-env.sh
+    template: src=dse/dse-env-{{dse.version}}.sh dest=/etc/dse/cassandra/dse-env.sh
+
+  - name: configuring jvm.options
+    template: src=cassandra/jvm-{{dse.version}}.options dest=/etc/dse/cassandra/jvm.options
+
+  - name: configuring cassandra.yaml
+    template: src=cassandra/cassandra-{{dse.version}}.yaml dest=/etc/dse/cassandra/cassandra.yaml
+
+  - name: configuring cassandra-rackdc.properties
+    template: src=cassandra/cassandra-rackdc-{{dse.version}}.properties dest=/etc/dse/cassandra/cassandra-rackdc.properties
+
+  - name: configuring cassandra-env.sh
+    template: src=cassandra/cassandra-env-{{dse.version}}.sh dest=/etc/dse/cassandra/cassandra-env.sh

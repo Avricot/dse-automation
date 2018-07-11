@@ -30,7 +30,9 @@ Install ntp server.
 
 Syntax:
 
- `- role: resmo.ntp`
+ ```yaml
+ - role: resmo.ntp
+ ```
 
 #### common
 Install common libs and java on the node (curl,vim,sysstat etc.)
@@ -39,10 +41,6 @@ Syntaxe:
 
 ```yaml
   - role: common
-    #must the the exact name of the extracted archived downloaded with java_download_url
-    java_version: jdk1.8.0_111
-    #where to download java from.
-    java_download_url: 'http://download.oracle.com/otn-pub/java/jdk/8u111-b14/jdk-8u111-linux-x64.tar.gz'
 ```
 
 

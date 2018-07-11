@@ -1,5 +1,5 @@
 - name: create instance files
-  file: path={{item}} owner={{cassandra.user}} group={{cassandra.group}} mode=760 state=directory
+  file: path={{item}} owner={{dse.cassandra.user}} group={{dse.cassandra.group}} mode=760 state=directory
   with_items:
     - "/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/commitlog"
     - "/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/data"
@@ -13,7 +13,14 @@
   ignore_errors: true
 
 - name: Add dse node {{instance_id}}
-  command: dse add-node --node-id {{instance_id}} --listen-address {{ip}} --rpc-address {{ip}}  --jmxport 7{{instance_id}}99 --seeds {{cassandra_seeds}} --max-heap-size={{cassandra_max_heap_size}} --cpus {{cassandra_cpu}} --data-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/data" --hints-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/hints" --commit-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/commitlog" --saved-caches-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/savedcache" --logs-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/logs"
+  command:
+  dse add-node --node-id {{instance_id}} --listen-address {{ip}} --rpc-address {{ip}}  --jmxport 7{{instance_id}}99 --seeds {{cassandra_seeds}} --max-heap-size={{cassandra_max_heap_size}} --cpus {{cassandra_cpu}} --data-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/data" --hints-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/hints" --commit-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/commitlog" --saved-caches-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/savedcache" --logs-directory="/data/tore/prod/ssd{{ssd_id}}/dse{{instance_id}}/logs"
+
+  --spark-worker-directory=/darwin-1/spark/worker
+  --spark-local-directory=/darwin-1/spark/rdd
+  --spark-log-directory=/darwin-1/spark/log
+
+
   when: dseexists|failed
 
 - name: Start dse node {{instance_id}}

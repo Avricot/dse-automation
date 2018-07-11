@@ -1,14 +1,9 @@
 - name: Add datastax repository
   yum_repository:
-    name: DataStax Repo for DataStax Enterprise
+    name: dataStax_enterprise
     description: DataStax Repo for DataStax Enterprise
-    baseurl: https://{{dse_username}}:{{dse_password}}@rpm.datastax.com/enterprise
-
-- name: Add community repository
-  yum_repository:
-    name: DataStax community Repo for DataStax Enterprise
-    description: DataStax community Repo for DataStax Enterprise
-    baseurl: 'http://rpm.datastax.com/community'
+    baseurl: https://{{dse.repo_username}}:{{dse.repo_password}}@rpm.datastax.com/enterprise
+    gpgcheck: no
 
 
 #- name: copy dse rpm

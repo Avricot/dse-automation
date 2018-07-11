@@ -68,9 +68,9 @@
 # export HIVE_SERVER2_THRIFT_BIND_HOST=127.0.0.1
 
 # Remember to set these ports identically on each node
-export SPARK_MASTER_PORT={{spark.master_port}}
-export SPARK_MASTER_WEBUI_PORT={{spark.master_webui_port}}
-export SPARK_WORKER_WEBUI_PORT={{spark.worker_webui_port}}
+export SPARK_MASTER_PORT={{dse.spark.master_port}}
+export SPARK_MASTER_WEBUI_PORT={{dse.spark.master_webui_port}}
+export SPARK_WORKER_WEBUI_PORT={{dse.spark.worker_webui_port}}
 
 # The hostname or IP address Cassandra rpc/native protocol is bound to:
 # export SPARK_CASSANDRA_CONNECTION_HOST="127.0.0.1"
@@ -80,13 +80,13 @@ export SPARK_WORKER_WEBUI_PORT={{spark.worker_webui_port}}
 # export SPARK_DRIVER_HOST="127.0.0.1"
 
 # Set the amount of memory used by Spark Worker - if uncommented, it overrides the setting initial_spark_worker_resources in dse.yaml.
-export SPARK_WORKER_MEMORY={{spark.worker_memory}}
+export SPARK_WORKER_MEMORY={{dse.spark.worker_memory}}
 
 # Set the number of cores used by Spark Worker - if uncommented, it overrides the setting initial_spark_worker_resources in dse.yaml.
-export SPARK_WORKER_CORES={{spark.worker_cores}}
+export SPARK_WORKER_CORES={{dse.spark.worker_cores}}
 
 # The amount of memory used by the Spark Driver JVM
-export SPARK_DRIVER_MEMORY={{spark.driver_memory}}
+export SPARK_DRIVER_MEMORY={{dse.spark.driver_memory}}
 
 # Warning: Be careful when changing temporary subdirectories. Make sure they different for different Spark components
 # and they are set with spark.local.dir for Spark Master and Spark Worker, and with java.io.tmpdir for Spark executor,
@@ -97,21 +97,21 @@ export SPARK_DRIVER_MEMORY={{spark.driver_memory}}
 
 # This is a base directory for Spark Worker work files.
 if [ "x$SPARK_WORKER_DIR" = "x" ]; then
-    export SPARK_WORKER_DIR="{{spark.worker_dir}}"
+    export SPARK_WORKER_DIR="{{dse.spark.worker_dir}}"
 fi
 
 if [ "x$SPARK_LOCAL_DIRS" = "x" ]; then
-    export SPARK_LOCAL_DIRS="{{spark.local_dir}}"
+    export SPARK_LOCAL_DIRS="{{dse.spark.local_dir}}"
 fi
 
 # This is a base directory for Spark Worker logs.
 if [ "x$SPARK_WORKER_LOG_DIR" = "x" ]; then
-    export SPARK_WORKER_LOG_DIR="{{spark.worker_log_dir}}"
+    export SPARK_WORKER_LOG_DIR="{{dse.spark.worker_log_dir}}"
 fi
 
 # This is a base directory for Spark Master logs.
 if [ "x$SPARK_MASTER_LOG_DIR" = "x" ]; then
-    export SPARK_MASTER_LOG_DIR="{{spark.master_log_dir}}"
+    export SPARK_MASTER_LOG_DIR="{{dse.spark.master_log_dir}}"
 fi
 
 # These Java options will be passes to Spark Master processOA

@@ -1,0 +1,51 @@
+- name: installing some extra dependencies
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - wget
+    - curl
+    #- htop #htop not present by default.
+    - vim
+    - sysstat
+
+- name: Fetch Java version
+  shell: java -version 2>&1 | grep version | awk '{print $3}' | sed 's/"//g'
+  ignore_errors: true
+  register: installed_java_version
+
+- name: create /tmp/java8/extract folder
+  file: state=directory path=/tmp/java8/extract owner=root group=root recurse=yes
+  when: installed_java_version|failed or installed_java_version.stdout == '' or installed_java_version.stdout | version_compare('1.8', '<')
+
+#TODO install with rpm instead...
+- name: Download Java from {{java_download_url}}
+  command: "wget -O /tmp/java8/java-8-oracle.tar.gz --no-check-certificate --no-cookies --header 'Cookie: oraclelicense=accept-securebackup-cookie' {{java_download_url}} creates=/tmp/java8/java-8-oracle.tar.gz"
+  when: installed_java_version|failed or installed_java_version.stdout == '' or installed_java_version.stdout | version_compare('1.8', '<')
+
+- name: Create /usr/lib/jvm directory
+  file:
+    path: /usr/lib/jvm
+    owner: root
+    group: root
+    state: directory
+    mode: 0755
+
+- name: Unpack archive
+  unarchive:
+    remote_src: yes
+    src: /tmp/java8/java-8-oracle.tar.gz
+    dest: /tmp/java8/extract
+  when: installed_java_version|failed or installed_java_version.stdout == '' or installed_java_version.stdout | version_compare('1.8', '<')
+
+- name: copy /tmp/java8/extract/{{java_version}}/* to /usr/lib/jvm/{{java_version}}/
+  command: mv /tmp/java8/extract/{{java_version}} /usr/lib/jvm/
+  when: installed_java_version|failed or installed_java_version.stdout == '' or installed_java_version.stdout | version_compare('1.8', '<')
+
+- name: Fix ownership
+  file: state=directory path=/usr/lib/jvm/{{java_version}} owner=root group=root recurse=yes
+  when: installed_java_version|failed or installed_java_version.stdout == '' or installed_java_version.stdout | version_compare('1.8', '<')
+
+- name: Make Java available for system
+  command: 'update-alternatives --install "/usr/bin/java" "java" "/usr/lib/jvm/{{java_version}}/bin/java" 2000'
+  when: installed_java_version|failed or installed_java_version.stdout == '' or installed_java_version.stdout | version_compare('1.8', '<')

@@ -172,7 +172,7 @@
 
 - set_fact:
     os_ssd_blocks: "{{os.ssd_blocks}}"
-  when: not os.tune or not os.autodetect_block
+  when: os.tune and not os.autodetect_block
 
 #- set_fact:
 #    os_ssd_blocks: ""

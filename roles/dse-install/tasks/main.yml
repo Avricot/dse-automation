@@ -1,6 +1,9 @@
 - include: dependencies_{{ansible_os_family}}.yml
 - include: dse-install_{{ansible_os_family}}.yml
 - include: dse-spark-install.yml
-  when: spark.enabled
+  when: dse.spark.enabled
+- include: dse-solr-install.yml
+  when: dse.solr.enabled
 - include: datastax-agent-install_{{ansible_os_family}}.yml
   when: install_agent
+- include: config.yml

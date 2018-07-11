@@ -4,8 +4,8 @@
   become: yes
   become_method: sudo
   vars:
-    dse_username: 'xxxx@datastax.com'
-    dse_password: 'xxxx'
+    dse_username: 'quentin.ambard%40datastax.com'
+    dse_password: 'QuentinAcademy1'
     opscenter:
       interface: 'localhost'
   roles:
@@ -23,16 +23,16 @@
 
   #############################
   #Tune os settings. Apply datastax recommended settings.
-  - role: os-tuning
-    os:
-      #Enable extra tuning conf. Should be carefully used.
-      advanced_tuning: True
-      #will execute a regexp to detect blocks (all blocks will be tuned as SSD !).
-      autodetect_block: True
-      #If autodetect_block = False, manually list SSD here.
-      ssd_blocks: [] #["sda", "sdb"]
-      #If you have any HDD disks, set autodetect_block to False and list HDD drive here.
-      hdd_blocks: [] #["sda", "sdb"]
+#  - role: os-tuning
+#    os:
+#      #Enable extra tuning conf. Should be carefully used.
+#      advanced_tuning: True
+#      #will execute a regexp to detect blocks (all blocks will be tuned as SSD !).
+#      autodetect_block: True
+#      #If autodetect_block = False, manually list SSD here.
+#      ssd_blocks: [] #["sda", "sdb"]
+#      #If you have any HDD disks, set autodetect_block to False and list HDD drive here.
+#      hdd_blocks: [] #["sda", "sdb"]
 
   - role: dse-install
     spark:
@@ -75,6 +75,7 @@
       jvm_options:
         path: '/etc/dse/cassandra/jvm.options'
         #None to comment the line
+        #TODO ne fonctionne pas remplacer par un template plus simplement
         conf:
           '-Xmx4G': 1
           '-Xms4G': 1

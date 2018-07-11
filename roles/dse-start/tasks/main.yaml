@@ -1,0 +1,81 @@
+- hosts: xch-spark
+  serial: 1
+  vars:
+    services_started:
+        - dse
+    services_stopped:
+        - dse
+  roles:
+    - { role: manage-service, when: 'inventory_hostname in cassandra_seeds' }
+ 
+  post_tasks:
+    - name: check if spark cassandra node is up
+      shell: /usr/bin/nodetool status --resolve-ip;/usr/bin/nodetool status
+      register: output
+      until: output.stdout.find("UN  {{ listen_address }}") > -1
+      retries: 30
+      delay: 10
+      when: '(service_state == "started" or service_state == "restarted") and inventory_hostname in cassandra_seeds'
+ 
+    - name: check if spark cassandra cqlsh is ready
+      shell: sudo su - cassandra -c '/bin/cqlsh -e "DESCRIBE KEYSPACES;"'
+      register: output
+      until: output.stdout.find("dse_leases") > -1
+      retries: 30
+      delay: 10
+      when: '(service_state == "started" or service_state == "restarted") and inventory_hostname in cassandra_seeds'
+      ignore_errors: true
+ 
+    - name: wait 15 sec
+      shell: sleep 15
+      when: '(service_state == "started" or service_state == "restarted") and inventory_hostname in cassandra_seeds'
+ 
+- hosts: xch-spark
+  serial: 1
+  vars:
+    services_started:
+        - dse
+    services_stopped:
+        - dse
+  roles:
+    - { role: manage-service, when: 'inventory_hostname not in cassandra_seeds' }
+ 
+  post_tasks:
+    - name: wait 15 sec
+      shell: sleep 15
+      when: '(service_state == "started" or service_state == "restarted") and inventory_hostname not in cassandra_seeds'
+ 
+    - name: check if spark cassandra cqlsh is ready
+      shell: sudo su - cassandra -c '/bin/cqlsh -e "DESCRIBE KEYSPACES;"'
+      register: output
+      until: output.stdout.find("dse_leases") > -1
+      retries: 30
+      delay: 10
+      when: service_state == "started" or service_state == "restarted"
+      ignore_errors: true
+ 
+- hosts: xch-spark
+  tasks:
+    - name: modify replication factor
+      shell: . ~/.bash_profile && /bin/cqlsh -e "ALTER KEYSPACE \"{{item}}\" WITH REPLICATION = {'class' {{':'}} 'NetworkTopologyStrategy', 'dc1' {{':'}} 3};"
+      become_user: cassandra
+      become: true
+      run_once: true
+      when: service_state == "started" or service_state == "restarted"
+      with_items:
+        - dse_leases
+        - dse_security
+        - "HiveMetaStore"
+        - spark_system
+ 
+- hosts: xch-spark
+  serial: 1
+  tasks:
+    - name: repair
+      shell: "{{item}}"
+      with_items:
+        - "nodetool repair dse_leases"
+        - "nodetool repair spark_system"
+        - "nodetool repair dse_security"
+        - "nodetool repair HiveMetaStore"
+      when: service_state == "started" or service_state == "restarted"

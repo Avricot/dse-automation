@@ -8,7 +8,7 @@
 
 
 - name: set cassandra root data folder permission
-  file: path={{item}} owner={{cassandra.user}} group={{cassandra.group}} mode=760 state=directory
+  file: path={{item}} owner={{dse.cassandra.user}} group={{dse.cassandra.group}} mode=760 state=directory
   with_items:
     - cassandra.cassandra_yaml.conf.data_file_directories
     - cassandra.cassandra_yaml.conf.hints_directory
@@ -16,54 +16,54 @@
     - cassandra.cassandra_yaml.conf.commitlog_directory
 
 #Cassandra.yaml
-- name: Cassandra chek all the keys exist in {{cassandra.cassandra_yaml.path}}
+- name: Cassandra chek all the keys exist in {{dse.cassandra.cassandra_yaml.path}}
   lineinfile:
-    dest: '{{cassandra.cassandra_yaml.path}}'
+    dest: '{{dse.cassandra.cassandra_yaml.path}}'
     regexp: '^\s*#?\s*{{item.key}}:(.*)$'
     line: '{{item.key}}:\1'
     backrefs: yes
     state: present
-  with_dict: '{{cassandra.cassandra_yaml.conf}}'
+  with_dict: '{{dse.cassandra.cassandra_yaml.conf}}'
 
-- name: Update cassandra list settings in {{cassandra.cassandra_yaml.path}}
+- name: Update cassandra list settings in {{dse.cassandra.cassandra_yaml.path}}
   replace:
-    dest: '{{cassandra.cassandra_yaml.path}}'
+    dest: '{{dse.cassandra.cassandra_yaml.path}}'
     regexp: '^\s*#?\s*{{item.key}}:.*\n(.*\n)*?\n#'
     replace: "{{item.key}}: {{item.value}}\n\n#"
-  with_dict: '{{cassandra.cassandra_yaml.conf}}'
+  with_dict: '{{dse.cassandra.cassandra_yaml.conf}}'
   when: item.value is not none
 
-- name: Comment lines set to None in {{cassandra.cassandra_yaml.path}}
+- name: Comment lines set to None in {{dse.cassandra.cassandra_yaml.path}}
   replace:
-    dest: '{{cassandra.cassandra_yaml.path}}'
+    dest: '{{dse.cassandra.cassandra_yaml.path}}'
     regexp: '^\s*#?\s*{{item.key}}:.*\n(.*\n)*?\n#'
     replace: "#{{item.key}}: \n\n#"
-  with_dict: '{{cassandra.cassandra_yaml.conf}}'
+  with_dict: '{{dse.cassandra.cassandra_yaml.conf}}'
   when: item.value is none
 
 
 
 #options.jvm
-- name: set options.jvm conf {{cassandra.jvm_options.path}}
+- name: set options.jvm conf {{dse.cassandra.jvm_options.path}}
   lineinfile:
-    dest: '{{cassandra.jvm_options.path}}'
+    dest: '{{dse.cassandra.jvm_options.path}}'
     regexp: '^\s*#?\s*{{item.key}}\s*$'
     line: '{{item.key}}'
     state: present
-  with_dict: '{{cassandra.jvm_options.conf}}'
+  with_dict: '{{dse.cassandra.jvm_options.conf}}'
   when: item.value is not none
 
-- name: set options.jvm conf {{cassandra.jvm_options.path}}
+- name: set options.jvm conf {{dse.cassandra.jvm_options.path}}
   lineinfile:
-    dest: '{{cassandra.jvm_options.path}}'
+    dest: '{{dse.cassandra.jvm_options.path}}'
     regexp: '^\s*#?\s*{{item.key}}\s*$'
     line: '#{{item.key}}'
     state: present
-  with_dict: '{{cassandra.jvm_options.conf}}'
+  with_dict: '{{dse.cassandra.jvm_options.conf}}'
   when: item.value is none
 
 #rack properties
-- name: configuring gossiping snitch {{cassandra.cassandra_rackdc_properties.path}}
+- name: configuring gossiping snitch {{dse.cassandra.cassandra_rackdc_properties.path}}
   template:
     src: 'cassandra/cassandra-rackdc.properties'
-    dest: "{{cassandra.cassandra_rackdc_properties.path}}"
+    dest: "{{dse.cassandra.cassandra_rackdc_properties.path}}"

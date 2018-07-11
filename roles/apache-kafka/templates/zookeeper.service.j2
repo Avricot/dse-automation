@@ -1,0 +1,19 @@
+[Unit]
+Description= Apache ZooKeeper
+After=network.target remote-fs.target nss-lookup.target
+Documentation=http://kafka.apache.org/documentation.html
+
+
+[Service]
+Type=simple
+User={{kafka.user.username}}
+Group={{kafka.user.groupname}}
+EnvironmentFile={{kafka_bin_dir}}/zookeeper.env
+ExecStart={{kafka_bin_dir}}/bin/zookeeper-server-start.sh {{kafka_bin_dir}}/config/zookeeper.properties
+RestartSec=30
+TimeoutSec=300
+ExecStop={{kafka_bin_dir}}/bin/zookeeper-server-stop.sh
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

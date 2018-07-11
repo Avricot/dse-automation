@@ -1,4 +1,56 @@
-install_agent: True
+dse:
+  opscenter:
+    interface: localhost #address of the opscenter
 
-spark:
-  enabled: False
+  install_agent: True
+
+  spark:
+    enabled: False
+
+  solr:
+    enabled: False
+
+  cassandra:
+    user: cassandra
+    group: cassandra
+    #Should be overridden for each node on the host file
+    datacenter: DC1
+    #Should be overridden for each node on the host file
+    rack: RAC1
+
+    log_dir: /var/log/cassandra
+
+    dse_yaml:
+      authentication_enabled: 'true'
+      authorization_enabled: 'true'
+
+    #Change cassandra.yaml global configuration
+    cassandra_yaml:
+      #Lines are identified by key.
+      #Set value to null to comment a line
+      #You can add any line you want here
+      seeds: "localhost"
+      cluster_name: 'TEST'
+      #listen_address: null #set listen_address or interface, but not both
+      listen_interface: 'eth0'
+      #rpc_address: null
+      rpc_interface: 'eth0'
+      auto_snapshot: 'true'
+      compaction_throughput_mb_per_sec: 64
+      roles_validity_in_ms: 60000
+      concurrent_reads: 32
+      concurrent_writes: 32
+      data_file_directories: /opt/cassandra/data/data
+      hints_directory: /opt/cassandra/hints
+      saved_caches_directory: /opt/cassandra/saved_caches
+      commitlog_directory: /opt/cassandra/commitlog
+      cdc_raw_directory: /opt/cassandra/cdc_raw
+
+    #Change jvm.options configuration
+    jvm_options:
+        heap: 4G
+        max_gc_pause: 350
+        enable_log: true
+        log_dir: /var/log/cassandra
+        #optional
+        #parallel_gc_threads: 16
