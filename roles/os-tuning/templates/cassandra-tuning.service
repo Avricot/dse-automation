@@ -8,7 +8,12 @@ ExecStart=/usr/bin/bash -c '/bin/echo never > /sys/kernel/mm/transparent_hugepag
 ExecStart=/usr/bin/bash -c '/bin/echo deadline > /sys/block/sda/queue/scheduler'
 ExecStart=/usr/bin/bash -c '/bin/echo 0 > /sys/block/sda/queue/rotational'
 ExecStart=/usr/bin/bash -c '/bin/echo 8 > /sys/block/sda/queue/read_ahead_kb'
-
+ExecStart=/usr/bin/bash -c '/bin/echo echo 0 > /proc/sys/vm/zone_reclaim_mode'
+#ExecStart=/usr/bin/bash -c 'for CPUFREQ in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor \
+#do \
+#    [ -f $CPUFREQ ] || continue \
+#    echo -n performance > $CPUFREQ \
+#done
 
 [Install]
 WantedBy=default.target
